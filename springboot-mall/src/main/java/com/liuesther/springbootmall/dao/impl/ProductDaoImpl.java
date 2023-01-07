@@ -2,6 +2,7 @@ package com.liuesther.springbootmall.dao.impl;
 
 import com.liuesther.springbootmall.constant.ProductCategory;
 import com.liuesther.springbootmall.dao.ProductDao;
+import com.liuesther.springbootmall.dto.ProductQuertParams;
 import com.liuesther.springbootmall.dto.ProductRequest;
 import com.liuesther.springbootmall.model.Product;
 import com.liuesther.springbootmall.rowmapper.ProductRowMapper;
@@ -27,7 +28,7 @@ public class ProductDaoImpl implements ProductDao {
 
 
     @Override
-    public List<Product> getProducts(ProductCategory category,String search) {
+    public List<Product> getProducts(ProductQuertParams productQuertParams) {//(ProductCategory category, String search)
         String sql="SELECT product_id, product_name, category, image_url, price, stock, description, " +
                 "created_date, last_modified_date " +
                 "FROM product WHERE 1=1";//沒有傳任何的參數進去 而是直接去把 product table 中的所有商品數據 全部都去給查詢出來
@@ -35,14 +36,14 @@ public class ProductDaoImpl implements ProductDao {
 
         Map<String, Object> map = new HashMap<>();//創建了一個空的 map
 
-        if(category != null){
+        if(productQuertParams.getCategory() != null){ //category=>productQuertParams.getCategory()
             sql = sql +" AND category = :category";//AND前面一定要有空白鍵 拼接sql才不會有問題
-            map.put("category", category.name());
+            map.put("category", productQuertParams.getCategory().name());
         }
 
-        if(search != null){
+        if(productQuertParams.getSearch() != null){ //改寫成是productQueryParams.getCategory()那去取得到商品分類的值
             sql = sql +" AND product_name LIKE :search";
-            map.put("search","%"+search+"%"); //%模糊查詢 一定不能寫在SQL語句 要寫在map拼接
+            map.put("search","%"+productQuertParams.getSearch()+"%"); //%模糊查詢 一定不能寫在SQL語句 要寫在map拼接
         }
 
         List<Product> productList = namedParameterJdbcTemplate.query(sql,map,new ProductRowMapper());

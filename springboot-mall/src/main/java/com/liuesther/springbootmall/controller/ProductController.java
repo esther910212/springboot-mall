@@ -2,6 +2,7 @@ package com.liuesther.springbootmall.controller;
 
 import com.liuesther.springbootmall.constant.ProductCategory;
 import com.liuesther.springbootmall.dao.ProductDao;
+import com.liuesther.springbootmall.dto.ProductQuertParams;
 import com.liuesther.springbootmall.dto.ProductRequest;
 import com.liuesther.springbootmall.model.Product;
 import com.liuesther.springbootmall.service.ProductService;
@@ -25,7 +26,12 @@ public class ProductController {
             @RequestParam(required = false) ProductCategory category, //針對這種有預先定義好的 category 的值 可以使用 ProductCategory 這個 Enum 去當作這個參數的類型 Spring Boot 他會自動幫我們將前端傳過來的字串 去轉換成是 ProductCategory 這個 Enum
             @RequestParam(required = false) String search //(required = false)允許此參數為非必要
     ){
-        List<Product> productList = productService.getProducts(category,search);
+        ProductQuertParams productQuertParams = new ProductQuertParams();
+        productQuertParams.setCategory(category);//把前端傳過來的 category 的參數去 set 到 productQueryParams 的 category 變數裡面降低不小心去填錯參數的一個機率
+        productQuertParams.setSearch(search);
+        //以後不論我們在這個 productQueryParams 裡面去添加了多少新的變數(添加新的查詢條件)那我們就不用再去修改 Service 層還有 Dao 層他們的 getProducts 方法的定義了
+
+        List<Product> productList = productService.getProducts(productQuertParams);//category,search=>替換掉productQuertParams
 
         return ResponseEntity.status(HttpStatus.OK).body(productList);
 
