@@ -7,13 +7,16 @@ import com.liuesther.springbootmall.dto.ProductRequest;
 import com.liuesther.springbootmall.model.Product;
 import com.liuesther.springbootmall.service.ProductService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+@Validated //下面的@Max@Min才會生效
 @RestController //先加上一個 @RestController 的註解 那表示他是一個 Controller 層的 bean
 public class ProductController {
     @Autowired
@@ -23,20 +26,27 @@ public class ProductController {
     //所以 GET /products他是取得一堆商品的話那 GET /products/｛producId｝他就是去取得這堆商品中裡面的某一個特定的商品的數據
     @GetMapping("/products")//查詢商品列表，所以要加s
     public ResponseEntity<List<Product>>getProducts( //@RequestParam 的註解 表示這個 category 的參數他是從 url 中所取得到的請求參數
-            // 查詢條件 Filtering
-            @RequestParam(required = false) ProductCategory category, //針對這種有預先定義好的 category 的值 可以使用 ProductCategory 這個 Enum 去當作這個參數的類型 Spring Boot 他會自動幫我們將前端傳過來的字串 去轉換成是 ProductCategory 這個 Enum
-            @RequestParam(required = false) String search, //(required = false)允許此參數為非必要 可選
+             // 查詢條件 Filtering
+             @RequestParam(required = false) ProductCategory category, //針對這種有預先定義好的 category 的值 可以使用 ProductCategory 這個 Enum 去當作這個參數的類型 Spring Boot 他會自動幫我們將前端傳過來的字串 去轉換成是 ProductCategory 這個 Enum
+             @RequestParam(required = false) String search, //(required = false)允許此參數為非必要 可選
 
-            //排序 Sorting
-            @RequestParam(defaultValue = "created_date") String orderBy, //可以是商品價格 或是商品的創建時間 或是商品的庫存之類的 就是要去根據什麼樣的欄位來進行排序
-            @RequestParam(defaultValue = "desc") String sort //使用升序(小排到大)或是降序(大排到小)來排序
-            //對一間公司來說預設一定是想要呈現最新的那些商品在最前面那這樣才能夠更吸引消費者的目光=>若前端沒傳值，則預設(defaultValue = "created_date")
+             // 排序 Sorting
+             @RequestParam(defaultValue = "created_date") String orderBy, //可以是商品價格 或是商品的創建時間 或是商品的庫存之類的 就是要去根據什麼樣的欄位來進行排序
+             @RequestParam(defaultValue = "desc") String sort, //使用升序(小排到大)或是降序(大排到小)來排序
+             //對一間公司來說預設一定是想要呈現最新的那些商品在最前面那這樣才能夠更吸引消費者的目光=>若前端沒傳值，則預設(defaultValue = "created_date")
+
+             // 分頁 Pagination //那也就是一次不能夠取得超過 1000 筆數據 最小不可以比 0 還小 避免前端去傳了一個負數進來
+             @RequestParam(defaultValue = "5") @Max(1000) @Min(0)Integer limit, //表示說 這次要取得幾筆商品數據
+             @RequestParam(defaultValue = "0") @Min(0) Integer offset //表示說 我們要去跳過多少筆數據
+             //分頁用defaultValue更重要的目的其實是去保護後端存取資料庫的效能(當資料有百萬筆時..)
     ){
         ProductQuertParams productQuertParams = new ProductQuertParams();
         productQuertParams.setCategory(category);//把前端傳過來的 category 的參數去 set 到 productQueryParams 的 category 變數裡面降低不小心去填錯參數的一個機率
         productQuertParams.setSearch(search);
         productQuertParams.setOrderBy(orderBy);
         productQuertParams.setSort(sort);
+        productQuertParams.setLimit(limit);
+        productQuertParams.setOffset(offset);
         //以後不論我們在這個 productQueryParams 裡面去添加了多少新的變數(添加新的查詢條件)那我們就不用再去修改 Service 層還有 Dao 層他們的 getProducts 方法的定義了
 
         List<Product> productList = productService.getProducts(productQuertParams);//category,search=>替換掉productQuertParams
