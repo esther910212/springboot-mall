@@ -1,5 +1,6 @@
 package com.liuesther.springbootmall.controller;
 
+import com.liuesther.springbootmall.dao.ProductDao;
 import com.liuesther.springbootmall.dto.ProductRequest;
 import com.liuesther.springbootmall.model.Product;
 import com.liuesther.springbootmall.service.ProductService;
@@ -9,10 +10,31 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController //先加上一個 @RestController 的註解 那表示他是一個 Controller 層的 bean
 public class ProductController {
     @Autowired
     private ProductService productService;
+
+    //url 路徑他代表的是每一個資源之間的階層關係那在 url 路徑裡面每出現一個斜線就代表是一個階層也就是一個子集合的概念
+    //所以 GET /products他是取得一堆商品的話那 GET /products/｛producId｝他就是去取得這堆商品中裡面的某一個特定的商品的數據
+    @GetMapping("/products")
+    public ResponseEntity<List<Product>>getProducts(){ //查詢商品列表，所以要加s
+        List<Product>productList = productService.getProducts();
+
+        return ResponseEntity.status(HttpStatus.OK).body(productList);
+
+        //不管有沒有去查詢到商品的數據 都是會去回傳 200 OK 的 http 狀態碼給前端
+        //所以當取得了 productList 的商品列表的時候 並沒有去判斷 這個 productList 是否為一個空的 list
+        //反而是將這個 producList 直接去返回給前端
+
+        //因為 RESTful 他在設計上的一些理念 對 RESTful 對url的資源定義來說
+        //每一個 url 都是一個資源 所以當前端來請求 GET /products 這個資源的時候 那即使商品的數據不存在 但是 GET /products 這個資源是存在的 所以這個時候 就要回 200 OK 給前端
+        //假設前端他是去請求 GET /products/｛producId｝ 這個 url 的時候 如果這時候找不到這個商品數據 那就表示這個 url 的資源是不存在的 所以這時候就要回 404 Not Found 給前端
+    }
+
+
 
     @GetMapping("/products/{productId}") //根據 RESTful 的設計原則 如果我們是想要去取得某一筆商品的數據的話 那就會是使用 GET 方法來請求 表示要去取得的是某一筆商品的數據
     public ResponseEntity<Product> getProduct(@PathVariable Integer productId){ //方法的返回類型是 ResponseEntity＜Product＞ //PathVariable 表示這個 productId 的值 是從 url 路徑裡面給傳進來
@@ -24,7 +46,7 @@ public class ProductController {
         if(product != null){ //如果這個查詢出來的商品數據 他的值不是 null 的話 那就表示有找到這一筆商品的數據
             return ResponseEntity.status(HttpStatus.OK).body(product); //就回傳一個 ResponseEntity 那他的 http 狀態碼 是 200 那這個 response body 裡面的值 就是我們從資料庫中所查詢出來的 product 的數據 返回前端
         }else{
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();//因為/products/{productId}的api資源是無效的=> 所以not found
         }
     }
 
