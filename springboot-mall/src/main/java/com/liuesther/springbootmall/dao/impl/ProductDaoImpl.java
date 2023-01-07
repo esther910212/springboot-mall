@@ -81,5 +81,27 @@ public class ProductDaoImpl implements ProductDao {
     }
 
 
+    @Override
+    public void updateProduct(Integer productId, ProductRequest productRequest) {
+        // 帶入前端傳入的值(冒號：java變數)
+        // UPDATE sql 裡面 也會去更新了 last_modified_date 這個欄位的值
+        String sql = "UPDATE product SET product_name=:productName, category=:category, image_url=:imageUrl, " +
+                "price=:price, stock=:stock, description=:description, last_modified_date=:lastModifiedDate " +
+                "WHERE product_id=:productId";
 
+        Map<String, Object> map = new HashMap<>();
+        map.put("productId",productId);
+
+        map.put("productName",productRequest.getProductName());
+        map.put("category",productRequest.getCategory().toString());
+        map.put("imageUrl",productRequest.getImageUrl());
+        map.put("price",productRequest.getPrice());
+        map.put("stock",productRequest.getStock());
+        map.put("description",productRequest.getDescription());
+
+        map.put("lastModifiedDate",new Date());
+
+        //去使用 namedParameterJdbcTemplate 的 update 方法去執行這一條 sql 去修改這個商品的數據了
+        namedParameterJdbcTemplate.update(sql,map);
+    }
 }

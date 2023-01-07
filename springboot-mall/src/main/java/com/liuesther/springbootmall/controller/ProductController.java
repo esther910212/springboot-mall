@@ -27,7 +27,9 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
-//據 RESTful 的設計原則 新增商品是使用 POST 方法來請求
+
+
+    //根據 RESTful 的設計原則 新增商品是使用 POST 方法來請求
     @PostMapping("/products")
     public ResponseEntity<Product> createProduct(@RequestBody @Valid ProductRequest productRequest){ //一定要記得 要在這個參數的前面 去加上一個 @Valid 的註解  @NotNull 才會生效
        // 傳入 ProductRequest 這個參數 並且要在他的前面 去加上一個 @RequestBody 的註解 表示他是要去接住 前端所傳過來的 json 參數
@@ -37,4 +39,32 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(product); //去回傳一個 ResponseEntity 給前端 他的 http 狀態碼 會是 201 Created 表示有一筆數據被創建出來 並且我們把這個創建出來的商品數據 放在 body 的裡面 然後傳回去給前端
 
     }
+
+
+
+    //根據 RESTful 的設計原則 修改商品是使用 PUT 方法來請求
+    @PutMapping("/products/{productId}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Integer productId, //去接住從 url 路徑傳過來的 productId 的值 所以我在參數這邊可以寫一個 @PathVariable 註解
+                                                 @RequestBody @Valid ProductRequest productRequest){ //去接住 這個商品修改過後的數據 我們在這邊就可以去沿用 上面有創建的 ProductRequest(剛好根要給user修改的欄位相同) 來使用
+
+        // 檢查 product 是否存在
+        Product product = productService.getProductById(productId);
+
+        if(product == null){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        // 修改商品的數據： 商品如果存在的話 就去更新這個商品 並且將更新過後的商品數據 再去回傳給前端
+        //productId 表示要更新的是哪一個商品 第二個參數就是 ProductRequest 用來表示這個商品修改過後的值是什麼
+        productService.updateProduct(productId,productRequest);
+
+        //使用這個 productId 去查詢更新後的商品數據回來
+        Product updatedProduct = productService.getProductById(productId);
+
+        //回傳一個 ResponseEntity 給前端
+        return ResponseEntity.status(HttpStatus.OK).body(updatedProduct);
+
+
+    }
+
 }
