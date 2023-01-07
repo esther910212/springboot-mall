@@ -1,5 +1,6 @@
 package com.liuesther.springbootmall.service.impl;
 
+import com.liuesther.springbootmall.constant.ProductCategory;
 import com.liuesther.springbootmall.dao.ProductDao;
 import com.liuesther.springbootmall.dto.ProductRequest;
 import com.liuesther.springbootmall.model.Product;
@@ -15,8 +16,8 @@ public class ProductServiceImpl implements ProductService {
     private ProductDao productDao;
 
     @Override
-    public List<Product> getProducts() {
-        return productDao.getProducts();
+    public List<Product> getProducts(ProductCategory category,String search) {
+        return productDao.getProducts(category,search);
     }
 
     @Override

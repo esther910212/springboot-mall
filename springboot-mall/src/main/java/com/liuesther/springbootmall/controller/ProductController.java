@@ -1,5 +1,6 @@
 package com.liuesther.springbootmall.controller;
 
+import com.liuesther.springbootmall.constant.ProductCategory;
 import com.liuesther.springbootmall.dao.ProductDao;
 import com.liuesther.springbootmall.dto.ProductRequest;
 import com.liuesther.springbootmall.model.Product;
@@ -19,9 +20,12 @@ public class ProductController {
 
     //url 路徑他代表的是每一個資源之間的階層關係那在 url 路徑裡面每出現一個斜線就代表是一個階層也就是一個子集合的概念
     //所以 GET /products他是取得一堆商品的話那 GET /products/｛producId｝他就是去取得這堆商品中裡面的某一個特定的商品的數據
-    @GetMapping("/products")
-    public ResponseEntity<List<Product>>getProducts(){ //查詢商品列表，所以要加s
-        List<Product>productList = productService.getProducts();
+    @GetMapping("/products")//查詢商品列表，所以要加s
+    public ResponseEntity<List<Product>>getProducts( //@RequestParam 的註解 表示這個 category 的參數他是從 url 中所取得到的請求參數
+            @RequestParam(required = false) ProductCategory category, //針對這種有預先定義好的 category 的值 可以使用 ProductCategory 這個 Enum 去當作這個參數的類型 Spring Boot 他會自動幫我們將前端傳過來的字串 去轉換成是 ProductCategory 這個 Enum
+            @RequestParam(required = false) String search //(required = false)允許此參數為非必要
+    ){
+        List<Product> productList = productService.getProducts(category,search);
 
         return ResponseEntity.status(HttpStatus.OK).body(productList);
 

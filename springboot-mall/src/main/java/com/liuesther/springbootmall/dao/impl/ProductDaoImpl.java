@@ -1,5 +1,6 @@
 package com.liuesther.springbootmall.dao.impl;
 
+import com.liuesther.springbootmall.constant.ProductCategory;
 import com.liuesther.springbootmall.dao.ProductDao;
 import com.liuesther.springbootmall.dto.ProductRequest;
 import com.liuesther.springbootmall.model.Product;
@@ -26,11 +27,23 @@ public class ProductDaoImpl implements ProductDao {
 
 
     @Override
-    public List<Product> getProducts() {
+    public List<Product> getProducts(ProductCategory category,String search) {
         String sql="SELECT product_id, product_name, category, image_url, price, stock, description, " +
-                "created_date, last_modified_date FROM product";//沒有傳任何的參數進去 而是直接去把 product table 中的所有商品數據 全部都去給查詢出來
+                "created_date, last_modified_date " +
+                "FROM product WHERE 1=1";//沒有傳任何的參數進去 而是直接去把 product table 中的所有商品數據 全部都去給查詢出來
+                // WHERE 1=1 最主要的理由是我們想要讓下面的查詢條件可以自由地去拼接在這個 sql 語法的後面
 
         Map<String, Object> map = new HashMap<>();//創建了一個空的 map
+
+        if(category != null){
+            sql = sql +" AND category = :category";//AND前面一定要有空白鍵 拼接sql才不會有問題
+            map.put("category", category.name());
+        }
+
+        if(search != null){
+            sql = sql +" AND product_name LIKE :search";
+            map.put("search","%"+search+"%"); //%模糊查詢 一定不能寫在SQL語句 要寫在map拼接
+        }
 
         List<Product> productList = namedParameterJdbcTemplate.query(sql,map,new ProductRowMapper());
 
