@@ -23,12 +23,20 @@ public class ProductController {
     //所以 GET /products他是取得一堆商品的話那 GET /products/｛producId｝他就是去取得這堆商品中裡面的某一個特定的商品的數據
     @GetMapping("/products")//查詢商品列表，所以要加s
     public ResponseEntity<List<Product>>getProducts( //@RequestParam 的註解 表示這個 category 的參數他是從 url 中所取得到的請求參數
+            // 查詢條件 Filtering
             @RequestParam(required = false) ProductCategory category, //針對這種有預先定義好的 category 的值 可以使用 ProductCategory 這個 Enum 去當作這個參數的類型 Spring Boot 他會自動幫我們將前端傳過來的字串 去轉換成是 ProductCategory 這個 Enum
-            @RequestParam(required = false) String search //(required = false)允許此參數為非必要
+            @RequestParam(required = false) String search, //(required = false)允許此參數為非必要 可選
+
+            //排序 Sorting
+            @RequestParam(defaultValue = "created_date") String orderBy, //可以是商品價格 或是商品的創建時間 或是商品的庫存之類的 就是要去根據什麼樣的欄位來進行排序
+            @RequestParam(defaultValue = "desc") String sort //使用升序(小排到大)或是降序(大排到小)來排序
+            //對一間公司來說預設一定是想要呈現最新的那些商品在最前面那這樣才能夠更吸引消費者的目光=>若前端沒傳值，則預設(defaultValue = "created_date")
     ){
         ProductQuertParams productQuertParams = new ProductQuertParams();
         productQuertParams.setCategory(category);//把前端傳過來的 category 的參數去 set 到 productQueryParams 的 category 變數裡面降低不小心去填錯參數的一個機率
         productQuertParams.setSearch(search);
+        productQuertParams.setOrderBy(orderBy);
+        productQuertParams.setSort(sort);
         //以後不論我們在這個 productQueryParams 裡面去添加了多少新的變數(添加新的查詢條件)那我們就不用再去修改 Service 層還有 Dao 層他們的 getProducts 方法的定義了
 
         List<Product> productList = productService.getProducts(productQuertParams);//category,search=>替換掉productQuertParams

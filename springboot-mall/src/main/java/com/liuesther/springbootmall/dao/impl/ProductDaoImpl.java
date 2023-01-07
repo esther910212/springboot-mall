@@ -45,6 +45,10 @@ public class ProductDaoImpl implements ProductDao {
             sql = sql +" AND product_name LIKE :search";
             map.put("search","%"+productQuertParams.getSearch()+"%"); //%模糊查詢 一定不能寫在SQL語句 要寫在map拼接
         }
+        //實作這種 ORDER BY 的 sql 語法的時候 那只能夠用這種字串拼接的方式 去拼出這個部分的 sql 語句出來 那是不能夠用這種 sql 的變數去實作的
+        //因為controller有設預設值，所以這裡不用再做null檢查
+        //拼接這種 sql 語句的時候 一定要記得在 前、後 分別去預留一個空白鍵
+        sql = sql +" ORDER BY "+productQuertParams.getOrderBy() + " "+ productQuertParams.getSort();
 
         List<Product> productList = namedParameterJdbcTemplate.query(sql,map,new ProductRowMapper());
 
