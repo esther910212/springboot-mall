@@ -16,7 +16,8 @@ public class ProductController {
 
     @GetMapping("/products/{productId}") //根據 RESTful 的設計原則 如果我們是想要去取得某一筆商品的數據的話 那就會是使用 GET 方法來請求 表示要去取得的是某一筆商品的數據
     public ResponseEntity<Product> getProduct(@PathVariable Integer productId){ //方法的返回類型是 ResponseEntity＜Product＞ //PathVariable 表示這個 productId 的值 是從 url 路徑裡面給傳進來
-
+        //當前端來請求這個 api 的時候
+        //我們就會去回傳一個 Product 類型的 json 給前端
         Product product = productService.getProductById(productId);
 
         //當前端來請求這個 url 路徑 那我們就會去透過 productService 的 getProductById 方法 去資料庫中去查詢這一筆商品的數據出來
