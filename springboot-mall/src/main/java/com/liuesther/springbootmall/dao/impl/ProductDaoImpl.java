@@ -104,4 +104,15 @@ public class ProductDaoImpl implements ProductDao {
         //去使用 namedParameterJdbcTemplate 的 update 方法去執行這一條 sql 去修改這個商品的數據了
         namedParameterJdbcTemplate.update(sql,map);
     }
+
+
+    @Override
+    public void deleteProductById(Integer productId) {
+        String sql="DELETE FROM product WHERE product_id=:productId";
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("productId",productId);
+
+        namedParameterJdbcTemplate.update(sql,map);
+    }
 }

@@ -63,8 +63,18 @@ public class ProductController {
 
         //回傳一個 ResponseEntity 給前端
         return ResponseEntity.status(HttpStatus.OK).body(updatedProduct);
-
-
     }
 
+
+
+    //根據 RESTful 的設計原則刪除商品是使用 DELETE 方法來請求
+
+    @DeleteMapping("/products/{productId}")
+    public ResponseEntity<?> deleteProduct(@PathVariable Integer productId){
+        productService.deleteProductById(productId);
+
+        //不管我們有沒有去刪到這個商品 只要確定他消失不見
+        //不需要多去加一些 404 Not Found 的檢查判斷 這些判斷對刪除的 api 來說 反而是不正確的設計
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); //去返回 204 No Content 的資訊給前端就可以
+    }
 }
