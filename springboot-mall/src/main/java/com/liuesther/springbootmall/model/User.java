@@ -1,12 +1,18 @@
 package com.liuesther.springbootmall.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Date;
 
 public class User {
 
     private Integer userId;
+    @JsonProperty("e_mail") //當 Spring Boot 將這個 User class 去轉換成是一個 json 格式的時候 就會將 email 變數的 key 去轉換成是 e_mail
     private String email;
-    private String password;
+
+    @JsonIgnore //隱藏此變數 不回傳給前端
+    private String password;//在回傳 response body 給前端的時候 就要去將這個 password 的值給隱藏起來 避免我們去洩漏使用者的密碼給其他人
     private Date createdDate;
     private Date lastModifiedDate;
 
