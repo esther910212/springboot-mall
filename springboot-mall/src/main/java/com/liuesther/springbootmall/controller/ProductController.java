@@ -6,9 +6,11 @@ import com.liuesther.springbootmall.dto.ProductQuertParams;
 import com.liuesther.springbootmall.dto.ProductRequest;
 import com.liuesther.springbootmall.model.Product;
 import com.liuesther.springbootmall.service.ProductService;
+import com.liuesther.springbootmall.util.Page;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import org.apache.coyote.http2.HpackDecoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +27,8 @@ public class ProductController {
     //url 路徑他代表的是每一個資源之間的階層關係那在 url 路徑裡面每出現一個斜線就代表是一個階層也就是一個子集合的概念
     //所以 GET /products他是取得一堆商品的話那 GET /products/｛producId｝他就是去取得這堆商品中裡面的某一個特定的商品的數據
     @GetMapping("/products")//查詢商品列表，所以要加s
-    public ResponseEntity<List<Product>>getProducts( //@RequestParam 的註解 表示這個 category 的參數他是從 url 中所取得到的請求參數
+    public ResponseEntity<Page<Product>>getProducts(  //要回傳的是一個 Page 類型的 Product 數據(List<Product>=>Page<Product>)
+             //@RequestParam 的註解 表示這個 category 的參數他是從 url 中所取得到的請求參數
              // 查詢條件 Filtering
              @RequestParam(required = false) ProductCategory category, //針對這種有預先定義好的 category 的值 可以使用 ProductCategory 這個 Enum 去當作這個參數的類型 Spring Boot 他會自動幫我們將前端傳過來的字串 去轉換成是 ProductCategory 這個 Enum
              @RequestParam(required = false) String search, //(required = false)允許此參數為非必要 可選
@@ -49,9 +52,21 @@ public class ProductController {
         productQuertParams.setOffset(offset);
         //以後不論我們在這個 productQueryParams 裡面去添加了多少新的變數(添加新的查詢條件)那我們就不用再去修改 Service 層還有 Dao 層他們的 getProducts 方法的定義了
 
+        // 取得 product List
         List<Product> productList = productService.getProducts(productQuertParams);//category,search=>替換掉productQuertParams
 
-        return ResponseEntity.status(HttpStatus.OK).body(productList);
+        // 取得 product 總數
+        Integer total = productService.countProduct(productQuertParams);
+
+        // 分頁
+        Page<Product> page = new Page<>(); //new 一個 Page 類型的 Product 出來
+        page.setLimit(limit);//前端傳過來的 limit 的值原封不動的 set 到 page 這個變數
+        page.setOffset(offset);
+        page.setTotal(total);//null
+        page.setResult(productList);
+
+        //完成了 response body 格式的改動
+        return ResponseEntity.status(HttpStatus.OK).body(page);//productList=>
 
         //不管有沒有去查詢到商品的數據 都是會去回傳 200 OK 的 http 狀態碼給前端
         //所以當取得了 productList 的商品列表的時候 並沒有去判斷 這個 productList 是否為一個空的 list
