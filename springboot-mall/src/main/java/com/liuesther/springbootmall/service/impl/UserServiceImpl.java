@@ -1,6 +1,7 @@
 package com.liuesther.springbootmall.service.impl;
 
 import com.liuesther.springbootmall.dao.UserDao;
+import com.liuesther.springbootmall.dto.UserLoginRequest;
 import com.liuesther.springbootmall.dto.UserRegisterRequest;
 import com.liuesther.springbootmall.model.User;
 import com.liuesther.springbootmall.service.UserService;
@@ -41,5 +42,24 @@ public class UserServiceImpl implements UserService {
 
         // 創建帳號
         return userDao.createUser(userRegisterRequest);
+    }
+
+
+    @Override
+    public User login(UserLoginRequest userLoginRequest) {
+        User user = userDao.getUserByEmail(userLoginRequest.getEmail());
+
+        if(user == null){
+            log.warn("該 email {} 尚未註冊", userLoginRequest.getEmail());
+            //並且我們在下面 就去噴出一個 ResponseStatusException 那去強制停止這一次前端的請求
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+
+        if(user.getPassword().equals(userLoginRequest.getPassword())){ //比較String的值時要用equals
+            return user;
+        }else{
+            log.warn("該 email {} 的密碼不正確",userLoginRequest.getEmail());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
     }
 }

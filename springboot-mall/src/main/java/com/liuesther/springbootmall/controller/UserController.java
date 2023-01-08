@@ -1,5 +1,6 @@
 package com.liuesther.springbootmall.controller;
 
+import com.liuesther.springbootmall.dto.UserLoginRequest;
 import com.liuesther.springbootmall.dto.UserRegisterRequest;
 import com.liuesther.springbootmall.model.User;
 import com.liuesther.springbootmall.service.UserService;
@@ -31,4 +32,10 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
+    @PostMapping("users/login")
+    public ResponseEntity<User> login(@RequestBody @Valid UserLoginRequest userLoginRequest){ //RequestBody表示要接住前端傳來的RequestBody值
+        User user = userService.login(userLoginRequest);
+
+        return ResponseEntity.status(HttpStatus.OK).body(user);
+    }
 }
