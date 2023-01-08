@@ -14,6 +14,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.reactive.GenericReactiveTransaction;
 
+import javax.print.attribute.standard.JobKOctets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -32,16 +33,7 @@ public class ProductDaoImpl implements ProductDao {
 
         Map<String, Object> map = new HashMap<>();//創建了一個空的 map
 
-        // 查詢條件
-        if(productQuertParams.getCategory() != null){
-            sql = sql +" AND category = :category";
-            map.put("category", productQuertParams.getCategory().name());
-        }
-
-        if(productQuertParams.getSearch() != null){
-            sql = sql +" AND product_name LIKE :search";
-            map.put("search","%"+productQuertParams.getSearch()+"%");
-        }
+        sql = addFilteringSql(sql,map,productQuertParams);
 
         Integer total = namedParameterJdbcTemplate.queryForObject(sql,map, Integer.class);
         //Integer total接住這個 count(*) 的 sql 語句的查詢結果了
@@ -59,16 +51,8 @@ public class ProductDaoImpl implements ProductDao {
 
         Map<String, Object> map = new HashMap<>();//創建了一個空的 map
 
-        // 查詢條件
-        if(productQuertParams.getCategory() != null){ //category=>productQuertParams.getCategory()
-            sql = sql +" AND category = :category";//AND前面一定要有空白鍵 拼接sql才不會有問題
-            map.put("category", productQuertParams.getCategory().name());
-        }
+        sql = addFilteringSql(sql,map,productQuertParams);
 
-        if(productQuertParams.getSearch() != null){ //改寫成是productQueryParams.getCategory()那去取得到商品分類的值
-            sql = sql +" AND product_name LIKE :search";
-            map.put("search","%"+productQuertParams.getSearch()+"%"); //%模糊查詢 一定不能寫在SQL語句 要寫在map拼接
-        }
         // 排序
         //實作這種 ORDER BY 的 sql 語法的時候 那只能夠用這種字串拼接的方式 去拼出這個部分的 sql 語句出來 那是不能夠用這種 sql 的變數去實作的
         //因為controller有設預設值，所以這裡不用再做null檢查
@@ -178,4 +162,21 @@ public class ProductDaoImpl implements ProductDao {
 
         namedParameterJdbcTemplate.update(sql,map);
     }
+
+    private String addFilteringSql(String sql, Map<String, Object>map,ProductQuertParams productQuertParams){
+        //透過查詢條件 去拼接這些 sql 語句的話 就只要去使用這個 addFilteringSql 的方法
+        // 查詢條件
+        if(productQuertParams.getCategory() != null){ //category=>productQuertParams.getCategory()
+            sql = sql +" AND category = :category";//AND前面一定要有空白鍵 拼接sql才不會有問題
+            map.put("category", productQuertParams.getCategory().name());
+        }
+
+        if(productQuertParams.getSearch() != null){ //改寫成是productQueryParams.getCategory()那去取得到商品分類的值
+            sql = sql +" AND product_name LIKE :search";
+            map.put("search","%"+productQuertParams.getSearch()+"%"); //%模糊查詢 一定不能寫在SQL語句 要寫在map拼接
+        }
+
+        return sql;
+    }
+
 }
