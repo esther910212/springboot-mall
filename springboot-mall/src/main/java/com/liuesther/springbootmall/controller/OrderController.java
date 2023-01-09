@@ -1,6 +1,7 @@
 package com.liuesther.springbootmall.controller;
 
 import com.liuesther.springbootmall.dto.CreateOrderRequest;
+import com.liuesther.springbootmall.model.Order;
 import com.liuesther.springbootmall.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,10 @@ public class OrderController {
 
         Integer orderId = orderService.createOrder(userId,createOrderRequest);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderId);
+        Order order = orderService.getOrderById(orderId);
+        //除了可以去資料庫中插入數據之外 那同時也會把這整筆訂單的資訊 去回傳給前端
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(order);
 
     }
 }

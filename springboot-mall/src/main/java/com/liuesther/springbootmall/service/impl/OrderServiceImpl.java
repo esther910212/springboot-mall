@@ -10,6 +10,7 @@ import com.liuesther.springbootmall.model.Product;
 import com.liuesther.springbootmall.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,18 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ProductDao productDao;
 
+    @Override
+    public Order getOrderById(Integer orderId) {
+        Order order = orderDao.getOrderById(orderId);
+
+        List<OrderItem> orderItemList = orderDao.getOrderItemsByOrderId(orderId);
+        //合併order和orderItemList=>到order類別新增orderItem的List
+        order.setOrderItemList(orderItemList);
+        //這個 order 裡面 除了會去包含訂單的總資訊之外 那也會去包含 這一筆訂單他分別購買的是哪一些商品的資訊
+        return order;
+    }
+
+    @Transactional //修改多張資料庫 table 的話=> 萬一中間噴出了 exception 的話，會去復原已經執行過的資料庫操作
     @Override
     public Integer createOrder(Integer userId, CreateOrderRequest createOrderRequest) {
         int totalAmount = 0;
