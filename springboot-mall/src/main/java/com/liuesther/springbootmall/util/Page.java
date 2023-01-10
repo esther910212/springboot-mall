@@ -17,8 +17,8 @@ public class Page<T> {  //去處理分頁相關的 response java泛型 上面宣
         this.limit = limit;
     }
 
-    public Integer getOffset() {
-        return offset;
+    public Integer getOffset(Integer offset) {
+        return this.offset;
     }
 
     public void setOffset(Integer offset) {
@@ -40,4 +40,6 @@ public class Page<T> {  //去處理分頁相關的 response java泛型 上面宣
     public void setResult(List<T> result) {
         this.result = result;
     }
+
+
 }

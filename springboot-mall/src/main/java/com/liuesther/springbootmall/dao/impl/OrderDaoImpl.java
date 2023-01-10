@@ -1,6 +1,7 @@
 package com.liuesther.springbootmall.dao.impl;
 
 import com.liuesther.springbootmall.dao.OrderDao;
+import com.liuesther.springbootmall.dto.OrderQueryParams;
 import com.liuesther.springbootmall.model.Order;
 import com.liuesther.springbootmall.model.OrderItem;
 import com.liuesther.springbootmall.rowmapper.OrderItemRowMapper;
@@ -13,6 +14,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.print.attribute.standard.JobKOctets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +24,43 @@ import java.util.Map;
 public class OrderDaoImpl implements OrderDao { // Dao 層並不會多做一些複雜的邏輯處理，單純的只是去跟資料庫做溝通而已
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    @Override
+    public Integer countOrder(OrderQueryParams orderQueryParams) {
+        String sql ="SELECT count(*) FROM `order` WHERE 1=1";
+
+        Map<String, Object> map = new HashMap<>();
+
+        // 查詢條件
+        sql = addFilteringSql(sql,map,orderQueryParams);
+
+        Integer total = namedParameterJdbcTemplate.queryForObject(sql, map, Integer.class);
+
+        return total;
+    }
+
+    @Override
+    public List<Order> getOrders(OrderQueryParams orderQueryParams) {
+        String sql = "SELECT order_id, user_id, total_amount, created_date,last_modified_date FROM `order` WHERE 1=1";
+
+        Map<String,Object> map = new HashMap<>();
+
+        // 查詢條件
+        sql = addFilteringSql(sql,map,orderQueryParams);
+
+        // 排序：越新的排前面 寫死前端才無法改 直接在dao層寫
+        sql = sql +" ORDER BY created_date DESC";
+
+        // 分頁
+        sql = sql +" LIMIT :limit OFFSET :offset";
+        map.put("limit",orderQueryParams.getLimit());
+        map.put("offset",orderQueryParams.getOffset());
+
+        List<Order> orderList = namedParameterJdbcTemplate.query(sql,map,new OrderRowMapper());
+        //最後就是去使用之前有寫好的 OrderRowMapper 然後將這些數據 轉換成是一個 orderList
+
+        return orderList;
+    }
 
     @Override
     public Order getOrderById(Integer orderId) {
@@ -110,9 +149,15 @@ public class OrderDaoImpl implements OrderDao { // Dao 層並不會多做一些�
             parameterSources[i].addValue("amount",orderItem.getAmount());
 
         }
-
         namedParameterJdbcTemplate.batchUpdate(sql, parameterSources);
-
-
     }
+
+    private String addFilteringSql(String sql, Map<String, Object>map, OrderQueryParams orderQueryParams){
+        if(orderQueryParams.getUserId() != null ){
+            sql = sql +" AND user_id =:userId";
+            map.put("userId",orderQueryParams.getUserId());
+        }
+        return sql;
+    }
+
 }

@@ -5,6 +5,7 @@ import com.liuesther.springbootmall.dao.ProductDao;
 import com.liuesther.springbootmall.dao.UserDao;
 import com.liuesther.springbootmall.dto.BuyItem;
 import com.liuesther.springbootmall.dto.CreateOrderRequest;
+import com.liuesther.springbootmall.dto.OrderQueryParams;
 import com.liuesther.springbootmall.model.Order;
 import com.liuesther.springbootmall.model.OrderItem;
 import com.liuesther.springbootmall.model.Product;
@@ -30,6 +31,24 @@ public class OrderServiceImpl implements OrderService { //可以在一個 Servic
     private ProductDao productDao;
     @Autowired
     private UserDao userDao;
+
+    @Override
+    public Integer countOrder(OrderQueryParams orderQueryParams) {
+        return orderDao.countOrder(orderQueryParams);
+    }
+
+    @Override
+    public List<Order> getOrders(OrderQueryParams orderQueryParams) {
+        List<Order> orderList = orderDao.getOrders(orderQueryParams);
+
+        for(Order order : orderList){
+            List<OrderItem> orderItemList = orderDao.getOrderItemsByOrderId(order.getOrderId());
+            order.setOrderItemList(orderItemList);
+            //針對每一個 order 我們都去取得他的 order items 然後把這個 orderItemList 去放在每一個 order 的底下
+            //那等到這個 for loop 做完 每一個訂單都去找到他的詳細資訊之後 那最後我們再將這個 orderList 給返回回去就可以了
+        }
+        return orderList;
+    }
 
     @Override
     public Order getOrderById(Integer orderId) {
