@@ -2,26 +2,34 @@ package com.liuesther.springbootmall.service.impl;
 
 import com.liuesther.springbootmall.dao.OrderDao;
 import com.liuesther.springbootmall.dao.ProductDao;
+import com.liuesther.springbootmall.dao.UserDao;
 import com.liuesther.springbootmall.dto.BuyItem;
 import com.liuesther.springbootmall.dto.CreateOrderRequest;
 import com.liuesther.springbootmall.model.Order;
 import com.liuesther.springbootmall.model.OrderItem;
 import com.liuesther.springbootmall.model.Product;
+import com.liuesther.springbootmall.model.User;
 import com.liuesther.springbootmall.service.OrderService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class OrderServiceImpl implements OrderService {
-
+public class OrderServiceImpl implements OrderService { //可以在一個 Service 裡面去注入多個 Dao 的
+    private final static Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
     @Autowired
     private OrderDao orderDao;
     @Autowired
     private ProductDao productDao;
+    @Autowired
+    private UserDao userDao;
 
     @Override
     public Order getOrderById(Integer orderId) {
@@ -37,11 +45,35 @@ public class OrderServiceImpl implements OrderService {
     @Transactional //修改多張資料庫 table 的話=> 萬一中間噴出了 exception 的話，會去復原已經執行過的資料庫操作
     @Override
     public Integer createOrder(Integer userId, CreateOrderRequest createOrderRequest) {
+        // 檢查 user 是否存在
+        User user = userDao.getUserById(userId);
+
+        if(user == null){
+            log.warn("該 userId {} 不存在", userId);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            //保護我們的資料庫 那就會去中斷這一次前端的請求了
+        }
+
         int totalAmount = 0;
         List<OrderItem> orderItemList = new ArrayList<>();
 
         for(BuyItem buyItem : createOrderRequest.getBuyItemList()){
             Product product = productDao.getProductById(buyItem.getProductId());
+
+            // 檢查 product 是否存在、庫存是否足夠
+            if(product == null){
+                log.warn("商品 {} 不存在", buyItem.getProductId());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            }else if (product.getStock() < buyItem.getQuantity()){
+                log.warn("商品 {} 庫存數量不足，無法購買。剩餘庫存 {} ，欲購買數量 {}",
+                        buyItem.getProductId(),product.getStock(),buyItem.getQuantity());
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+            }
+
+            // 扣除商品庫存
+            productDao.updateStock( product.getProductId(), product.getStock() - buyItem.getQuantity());
+
+
             // 計算總價錢
             int amount = buyItem.getQuantity() * product.getPrice();
             totalAmount = totalAmount + amount;

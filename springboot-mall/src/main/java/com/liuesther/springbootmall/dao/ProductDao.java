@@ -7,7 +7,7 @@ import com.liuesther.springbootmall.model.Product;
 
 import java.util.List;
 
-public interface ProductDao {
+public interface ProductDao { //interface的好處：可以一覽所有方法
 
     Integer countProduct(ProductQuertParams productQuertParams);
 
@@ -21,6 +21,7 @@ public interface ProductDao {
 
     void updateProduct(Integer productId, ProductRequest productRequest);
 
+    void updateStock(Integer productId, Integer stock);
 
     void deleteProductById(Integer productId);
 }
